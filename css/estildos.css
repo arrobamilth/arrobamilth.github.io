@@ -141,8 +141,8 @@ input, button {
 
 
 button {
-   background-color: #5499C7;
-   color: #fff;
+   background-color: gray;
+   color: black;
    border: #A93226;
    cursor: pointer;
 }
