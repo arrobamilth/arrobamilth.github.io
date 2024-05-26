@@ -8,18 +8,18 @@
     <link rel="icon" href="images/icon.png">
     <link rel="stylesheet" href="css/estildos.css">
    
-    <title>Simulación Financiera</title>
+    <title>FinancePro</title>
 </head>
 <body>
      
   <header class="header" >  
     <div class="menu-container">
       <ul class="menu">
-        <li><a href="index.html">Inicio</a></li>
+        <li><a href="index.html">Home</a></li>
           <!-- <li><a href="../HTML/pag2.html">Amortización o capitalización</a></li> -->
-          <li><a href="Anualidades.html">Anualidades</a></li>
-          <li><a href="Gradiente.html">Gradientes</a></li>
-          <li><a href="AlternativasInversion.html">Simulación financiera</a></li>
+          <li><a href="Anualidades.html">Annuities</a></li>
+          <li><a href="Gradiente.html">Gradients</a></li>
+          <li><a href="AlternativasInversion.html">Investment</a></li>
       </ul>
   </div>
   </header>
@@ -31,7 +31,7 @@
       }
   
       .container {
-        background-color: #138D75;
+        background-color: #0D6D2B;
    border: 1px solid #ccc;
    border-radius: 5px;
    padding: 10px;
@@ -74,37 +74,133 @@
       }
     </style>
   
+  <div class="formulario">
+    <h2>CALCULA QUE TAN RENTABLE ES TU INVERSIÓN</h2>
+    <label for="opcion">Seleccione una opción:</label>
+    <select id="opcion" onchange="mostrarCampos(this.value)">
+      <option value="0"></option>
+      <option value="1">Valor presente Neto</option>
+      <option value="2">TIR</option>
+    
+      <option value="4">Pay back</option>
+    </select>
   
-    <div class="formulario">
-      <h2>CALCULA QUE TAN RENTABLE ES TU INVERSIÓN</h2>
-        <label for="opcion">Seleccione una opción:</label>
-        <select id="opcion" onclick="mostrarCampos(this.value)">
-            <option value="0"></option>
-            <option value="1">Valor presente Neto</option>
-            <option value="2">TIR</option>
-            <option value="3">Costo / Beneficio</option>
-            <option value="4">Pay back</option>
-        </select>
-
-        <br>
-
-        <label>Ingrese los datos</label>
-    
-        <div id="campos" style="display:none;">
-            <!-- Los campos para ingresar datos se mostrarán aquí -->
-        </div>
-
-        <br>
-    
-        <button onclick="calcular()">Calcular</button>
-    
-        <div id="resultado">
-            <!-- Los resultados se mostrarán aquí -->
-        </div>
-    
+    <br>
+  
+    <label>Ingrese los datos</label>
+  
+    <div id="campos" style="display:none;">
+      <!-- Los campos para ingresar datos se mostrarán aquí -->
     </div>
+  
+    <br>
+  
+    <button onclick="calcular()">Calcular</button>
+  
+    <div id="resultado">
+      <!-- Los resultados se mostrarán aquí -->
+    </div>
+  </div>
+  
+  <script>
+ function mostrarCampos(opcion) {
+  const campos = document.getElementById("campos");
+  campos.innerHTML = '';
 
-    <script src="../JS/script.js"></script>
+  if (opcion === "0") {
+    campos.style.display = "none";
+    return;
+  }
+
+  campos.style.display = "block";
+
+  let camposHTML = `
+    <label for="inversion">Inversión inicial:</label>
+    <input type="number" id="inversion" placeholder="Ingrese la inversión inicial" required><br>
+    <label for="flujo">Flujos de efectivo (separados por comas):</label>
+    <input type="text" id="flujo" placeholder="Ingrese los flujos de efectivo" required><br>
+  `;
+
+  if (opcion === "1") {
+    camposHTML += `
+      <label for="tasa">Tasa de descuento (%):</label>
+      <input type="number" id="tasa" placeholder="Ingrese la tasa de descuento" required><br>
+    `;
+  }
+
+  campos.innerHTML = camposHTML;
+}
+
+function calcular() {
+  const opcion = document.getElementById("opcion").value;
+  const inversion = parseFloat(document.getElementById("inversion").value);
+  const flujos = document.getElementById("flujo").value.split(',').map(parseFloat);
+  const tasa = opcion === "1" ? parseFloat(document.getElementById("tasa").value) / 100 : null;
+  let resultado = 0;
+
+  if (opcion === "1") { // Valor Presente Neto (VPN)
+    resultado = -inversion;
+    flujos.forEach((flujo, i) => {
+      resultado += flujo / Math.pow(1 + tasa, i + 1);
+    });
+    const esViable = resultado > 0 ? "Sí, la inversión es viable." : "No, la inversión no es viable.";
+    resultado = resultado.toFixed(2);
+    document.getElementById("resultado").innerHTML = `Valor Presente Neto (VPN): $${resultado} <br> ${esViable}`;
+  } else if (opcion === "2") { // TIR
+    resultado = calcularTIR(inversion, flujos);
+    document.getElementById("resultado").innerHTML = `Tasa Interna de Retorno (TIR): ${resultado.toFixed(2)}%`;
+  } else if (opcion === "4") { // Payback
+    const tablaPayback = calcularPayback(inversion, flujos);
+    document.getElementById("resultado").innerHTML = `Periodo de recuperación (Payback): ${tablaPayback.periodo} años <br> ${tablaPayback.tablaHTML}`;
+  }
+}
+
+function calcularTIR(inversion, flujos) {
+  let tasa = 0.1; // Tasa inicial
+  let maxIteraciones = 10000; // Número máximo de iteraciones
+  let precision = 1e-6; // Precisión deseada
+
+  for (let iteracion = 0; iteracion < maxIteraciones; iteracion++) {
+    let vpn = 0;
+    let derivadaVpn = 0;
+
+    for (let i = 0; i < flujos.length; i++) {
+      vpn += flujos[i] / Math.pow(1 + tasa, i + 1);
+      derivadaVpn -= (i + 1) * flujos[i] / Math.pow(1 + tasa, i + 2);
+    }
+
+    vpn -= inversion;
+
+    if (Math.abs(vpn) < precision) {
+      return tasa * 100;
+    }
+
+    tasa -= vpn / derivadaVpn;
+  }
+
+  return NaN; // Si no se encuentra la TIR dentro del número máximo de iteraciones
+}
+
+function calcularPayback(inversion, flujos) {
+  let acumulado = 0;
+  let periodo = 0;
+  let tablaHTML = "<table border='1'><tr><th>Año</th><th>Flujo</th><th>Acumulado</th></tr>";
+
+  for (let i = 0; i < flujos.length; i++) {
+    acumulado += flujos[i];
+    tablaHTML += `<tr><td>${i + 1}</td><td>${flujos[i].toFixed(2)}</td><td>${acumulado.toFixed(2)}</td></tr>`;
+    if (acumulado >= inversion) {
+      periodo = i + 1;
+      break;
+    }
+  }
+
+  tablaHTML += "</table>";
+  return { periodo, tablaHTML };
+}
+
+  </script>
+  
   
 </body>
 </html>
