@@ -151,7 +151,7 @@ function calcular() {
     document.getElementById("resultado").innerHTML = `Tasa Interna de Retorno (TIR): ${resultado.toFixed(2)}%`;
   } else if (opcion === "4") { // Payback
     const tablaPayback = calcularPayback(inversion, flujos);
-    document.getElementById("resultado").innerHTML = `Periodo de recuperación (Payback): ${tablaPayback.periodo} años <br> ${tablaPayback.tablaHTML}`;
+    document.getElementById("resultado").innerHTML = `Periodo de recuperación (Payback): ${tablaPayback.periodo} años`;
   }
 }
 
@@ -184,19 +184,19 @@ function calcularTIR(inversion, flujos) {
 function calcularPayback(inversion, flujos) {
   let acumulado = 0;
   let periodo = 0;
-  let tablaHTML = "<table border='1'><tr><th>Año</th><th>Flujo</th><th>Acumulado</th></tr>";
+  // let tablaHTML = "<table border='1'><tr><th>Año</th><th>Flujo</th><th>Acumulado</th></tr>";
 
   for (let i = 0; i < flujos.length; i++) {
     acumulado += flujos[i];
-    tablaHTML += `<tr><td>${i + 1}</td><td>${flujos[i].toFixed(2)}</td><td>${acumulado.toFixed(2)}</td></tr>`;
+    // tablaHTML += `<tr><td>${i + 1}</td><td>${flujos[i].toFixed(2)}</td><td>${acumulado.toFixed(2)}</td></tr>`;
     if (acumulado >= inversion) {
       periodo = i + 1;
       break;
     }
   }
 
-  tablaHTML += "</table>";
-  return { periodo, tablaHTML };
+  // tablaHTML += "</table>";
+  return { periodo};
 }
 
   </script>
